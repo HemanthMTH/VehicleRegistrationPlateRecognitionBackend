@@ -35,15 +35,13 @@ This Flask backend provides API endpoints for uploading and processing files. It
    
 2. **Run the Flask application**:
     ```bash
-    python <your-flask-app-filename>.py
+    python app.py
     ```
 
    By default, the server will start on `http://localhost:5000`.
 
 ## API Endpoints
 
-- **GET** `/`: Welcome route that provides a simple message.
-- **GET** `/hello`: Test endpoint that returns a greeting message.
 - **POST** `/process`: Endpoint to upload and process files.
 
 ## Contributing
