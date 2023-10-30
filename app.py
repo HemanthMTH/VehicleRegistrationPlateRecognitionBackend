@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask import send_from_directory
 from werkzeug.utils import secure_filename
 import os
 import logging
@@ -29,6 +30,9 @@ def api_hello():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+@app.route('/uploads/<filename>', methods=['GET'])
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 @app.route('/process', methods=['POST'])
 def upload_file():
@@ -66,10 +70,9 @@ def upload_file():
         file.save(file_path)
         logging.info(f"File saved at: {file_path}")
 
-        # Here you can add the ML processing code.
-        # e.g. result = process_ml_model(file_path)
+        # Return the file details
+        return jsonify({"file_path": file_path, "filename": filename, "unique_filename": unique_filename}), 200
 
-        return jsonify({"file_path": file_path}), 200
     else:
         logging.error(f"File type of {file.filename} not allowed")
         return jsonify({"error": "File type not allowed"}), 400
