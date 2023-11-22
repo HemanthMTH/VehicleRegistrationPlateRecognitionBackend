@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from flask_login import LoginManager, login_user, logout_user, UserMixin, current_user
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from flask_mail import Mail, Message
 import os
 import logging
 import time
@@ -19,6 +20,18 @@ app.config['SECRET_KEY'] = 'SOC#12'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydb.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads/'
+
+# Configure mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USERNAME'] = 'your-email@example.com'
+app.config['MAIL_PASSWORD'] = 'your-password'
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+app.config['MAIL_USE_SSL'] = False
+
+mail = Mail(app)
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'mp4'}
 MAX_FILE_SIZE = 500 * 1024 * 1024  # 500MB
 test_text = 'TS241464'
@@ -157,7 +170,13 @@ def login():
         if user and check_password_hash(user.password, data['password']):
             login_user(user, remember=True)
             return jsonify(
-                {"message": "Login successful", "user": {"username": user.username, "email": user.email}}), 200
+                {
+                    "message": "Login successful",
+                    "user": {
+                        "username": user.username,
+                        "email": user.email
+                    }
+                }), 200
     else:
         return jsonify({"error": "Invalid content type"}), 415
 
@@ -179,6 +198,21 @@ def logout():
         # Return a generic error message to the client
         return jsonify({"error": "Logout failed due to an internal error."}), 500
 
+
+@app.route('/send-email', methods=['POST'])
+def send_email():
+    if request.is_json:
+        data = request.get_json()
+        email = data.get('email')
+        if email:
+            msg = Message('Sample Email', sender='your-email@example.com', recipients=[email])
+            msg.body = 'This is a sample email sent from the Flask backend.'
+            mail.send(msg)
+            return jsonify({"message": "Email sent successfully"}), 200
+        else:
+            return jsonify({"error": "Email not provided"}), 400
+    else:
+        return jsonify({"error": "Invalid content type"}), 415
 
 
 if __name__ == '__main__':
